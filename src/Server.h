@@ -1,3 +1,11 @@
+//============================================================================
+// Name        : Server.h from Testing
+// Author      : Thog
+// Version     : 1.0
+// Copyright   : Copyright Thog 2014 - All right reserved
+// Description : Basic implementation of an HTTP Server (WIP)
+//============================================================================
+
 #ifndef SERVER_H_INCLUDED
 #define SERVER_H_INCLUDED
 #define WIN32
@@ -19,6 +27,7 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,13 +36,31 @@
 using namespace std;
 class Server {
 public:
-    Server(const int &port = 8080);
+    Server(int *);
     bool init();
-    int getPort();
 
 private:
     void manageConnexion();
-    int sendData(const SOCKET client, const char buffer[]);
+    /**
+     The server socket
+    **/
+    SOCKET sock;
+
+    /**
+     The server socket configuration
+    **/
+    SOCKADDR_IN sin;
+
+    /**
+     The client socket
+    **/
+    SOCKET client;
+
+    SOCKADDR_IN csin;
+
+    socklen_t recsize;
+
+    int *port, sock_err;
 
 };
 
