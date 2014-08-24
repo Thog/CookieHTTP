@@ -6,10 +6,10 @@
 // Description : Main ? What else ?
 //============================================================================
 
-#include "Server.h"
+#include "Server.hpp"
 int main()
 {
-    int port(8080);
+    int port(80);
     Server s(&port);
     s.init();
 	return 0;
