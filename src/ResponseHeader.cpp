@@ -9,39 +9,78 @@
 #include "ResponseHeader.hpp"
 
 inline void getFileContent(string path, string &result) {
-	result = "Not Found ";
+	result = "Not Found";
 	ifstream file(path, ios::in | ios::binary | ios::ate);
 	if (file.is_open()) {
-		int size;
-		size = file.tellg();
-		char content[size];
+		vector<char> buffer;
+		int size = file.tellg();
+		buffer.resize(size);
+
 		file.seekg(0, ios::beg);
-		file.read(content, size);
+		ostringstream oss;
+		oss << file.rdbuf();
 		file.close();
-		result = string(content);
+		result = oss.str();
 	}
 
 }
 
-ResponseHeader::ResponseHeader(string destination, string  host) {
+inline bool fileExist(string path)
+{
+	ifstream file(path, ios::in);
+	return file.good();
+}
 
+ResponseHeader::ResponseHeader(const Server *s,string destination, string  host) {
+	httpServer = s;
 	header = new string;
 	contentType = new string;
 	content = new string;
 	contentLenght = new string;
+	server = new string;
 	size = new int;
 	*content = "Access Denied";
 	if (destination.find("../") == string::npos) {
 		if (destination.find("/ ") != string::npos)
 			destination = "/index.html";
-		getFileContent(string(server_root) + host + "/" +  destination, *content);
-		if ((*content) == "Not Found")
-			getFileContent(string(server_root) + "default/" +  destination, *content);
+		//getFileContent(string(server_root) + host + "/" +  destination, *content);
+		//if ((*content) == "Not Found")
+		if(!fileExist(string(server_root) + host + "/" +  destination))
+		{
+			if(fileExist(string(server_root) + "default/" +  destination))
+				getFileContent(string(server_root) + "default/" +  destination, *content);
+			else
+				*content = "Not Found";
+		}
+		else
+		{
+			getFileContent(string(server_root) + host + "/" +  destination, *content);
+		}
+
+
+
+			//getFileContent(string(server_root) + "default/" +  destination, *content);
+	}
+	unsigned int posExt = destination.rfind(".");
+	//cout << (*content).c_str();
+	*contentType = "Content-Type: text/html\r\n";
+	if(posExt != string::npos)
+	{
+		string ext = destination.substr(posExt, destination.size());
+		int max = ext.find(" ");
+		//cout << max << endl;
+		ext = ext.substr(0, max);
+
+		//cout << ext << endl;
+		*contentType = "Content-Type: " + getMineType(ext) + "\r\n";
 	}
 
-	*contentType = "Content-Type: text/html\r\n";
+
+
+
+
 	ostringstream oss;
-	oss << (*content).size();
+	oss << (*content).length() + 1;
 	string size_str = oss.str();
 	*contentLenght = "Content-Length: ";
 	*contentLenght += size_str;
@@ -54,7 +93,8 @@ ResponseHeader::ResponseHeader(string destination, string  host) {
 	else
 		*header = "HTTP/1.1 200 OK\r\n";
 
-	*size = (*header).size() + (*contentType).size() + sizeof("\r\n") + (*content).size() + (*contentLenght).size();
+	*server = "Server: CookieHTTP 0.1\r\n";
+	*size = (*header).size() + (*server).size() +  (*contentType).size() + sizeof("\r\n") + (*contentLenght).size();
 
 	response = new char[*size];
 
@@ -62,10 +102,13 @@ ResponseHeader::ResponseHeader(string destination, string  host) {
 	*(response + 0) = '\0';
 
 	strcat(response, (*header).c_str());
+	strcat(response, (*server).c_str());
 	strcat(response, (*contentType).c_str());
 	strcat(response, (*contentLenght).c_str());
 	strcat(response, "\r\n");
-	strcat(response, (*content).c_str());
+//	strcat(response, (*content).c_str());
+	httpServer->sendBufferData(response, *size);
+	httpServer->sendBufferData((*content).c_str(), (*content).length());
 }
 
 ResponseHeader::~ResponseHeader() {
@@ -73,6 +116,8 @@ ResponseHeader::~ResponseHeader() {
 	delete contentType;
 	delete content;
 	delete contentLenght;
+	delete server;
+	delete[] response;
 	delete size;
 
 }
@@ -82,7 +127,7 @@ int ResponseHeader::getSize()
 	return *size;
 }
 
-char* ResponseHeader::getResponse()
+char *ResponseHeader::getResponse()
 {
 	return response;
 }
@@ -105,4 +150,44 @@ string ResponseHeader::getContentLenght()
 string ResponseHeader::getContentType()
 {
 	return *contentType;
+}
+
+inline string ResponseHeader::getMineType(string ext)
+{
+	string result = "text/html";
+#if defined(_WIN32)
+    // return mime type for extension
+    HKEY hKey = NULL;
+
+
+    //cout << "WIN32" << endl;
+    // open registry key
+    long t = RegOpenKeyEx(HKEY_CLASSES_ROOT, ext.c_str(),
+                           0, KEY_READ, &hKey);
+    //cout << t << endl;
+    if (t == ERROR_SUCCESS)
+    {
+    	//cout << "REG" << endl;
+        // define buffer
+        char szBuffer[256] = {0};
+        DWORD dwBuffSize = sizeof(szBuffer);
+
+        // get content type
+        if (RegQueryValueEx(hKey, "Content Type", NULL, NULL,
+                       (LPBYTE)szBuffer, &dwBuffSize) == ERROR_SUCCESS)
+        {
+            // success
+        	result = szBuffer;
+        }
+
+        // close key
+        RegCloseKey(hKey);
+    }
+
+#elif defined (linux)
+    //TODO: use magic
+#endif
+
+
+	return result;
 }

@@ -23,10 +23,7 @@ class RequestHeader {
 public:
 	RequestHeader(string);
 	virtual ~RequestHeader();
-	string getDestination();
-	string getHost();
-	string getHead();
-	string getAgent();
+	string getDestination(), getHost(), getHead(), getAgent();
 
 private:
 	string *header, *destination, *host, *agent, *buffer;

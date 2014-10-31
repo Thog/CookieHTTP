@@ -6,12 +6,15 @@
 // Description : Main ? What else ?
 //============================================================================
 
-#include "Server.hpp"
+#include "Controller.hpp"
 int main()
 {
     int port(80);
-    Server s(&port);
-    s.init();
+    Controller *c = new Controller(&port);
+    cout << c << endl;
+    c->init();
+//    Server s(&port);
+//    s.init();
 	return 0;
 }
 

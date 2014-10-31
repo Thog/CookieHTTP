@@ -1,5 +1,5 @@
 //============================================================================
-// Name        : Server.hpp from Testing
+// Name        : HttpServer.hpp from Testing
 // Author      : Thog
 // Version     : 1.0
 // Copyright   : Copyright Thog 2014 - All right reserved
@@ -9,6 +9,7 @@
 #ifndef SERVER_HPP_INCLUDED
 #define SERVER_HPP_INCLUDED
 
+#include "Controller.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -16,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+class Controller;
 #if defined (_WIN32)
     #include <windows.h>
     #include <winsock2.h>
@@ -41,11 +43,18 @@
 using namespace std;
 class Server {
 public:
-    Server(int *);
+	Server(Controller const *c);
     bool init();
+    inline int sendBufferData(const char *buffer, int size) const { return send(client, buffer, size , 0); }
+    inline void close() const { shutdown(client, 2); }
 
 private:
     void manageConnexion();
+
+    /**
+      The Controller
+     */
+    const Controller *controller;
     /**
      The server socket
     **/

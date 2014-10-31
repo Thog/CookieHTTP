@@ -12,18 +12,29 @@
 #include <fstream>
 #include <sstream>
 #include <string.h>
+#include "HttpServer.hpp"
+#include <vector>
+
+
+#if defined (_WIN32)
+	#include <windows.h>
+#elif defined (linux)
+
+#endif
 using namespace std;
 class ResponseHeader {
 public:
-	ResponseHeader(string destination, string host);
+	ResponseHeader(const Server *s, string destination, string host);
 	virtual ~ResponseHeader();
+	ResponseHeader(const ResponseHeader &);
 	int getSize();
 	char *getResponse();
-	string getHeader(), getContentType(), getContent(), getContentLenght();
+	inline string getMineType(string), getHeader(), getContentType(), getContent(), getContentLenght();
 
 private:
+	const Server *httpServer;
 	char *response;
-	string *header, *contentType, *content, *contentLenght;
+	string *header, *server, *contentType, *content, *contentLenght;
 	int *size;
 #if defined (_WIN32)
     const char *server_root =  "C:\\www\\";

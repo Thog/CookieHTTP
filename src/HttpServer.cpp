@@ -1,17 +1,19 @@
 //============================================================================
-// Name        : Server.cpp from Testing
+// Name        : HttpServer.cpp from Testing
 // Author      : Thog
 // Version     : 1.0
 // Copyright   : Copyright Thog 2014 - All right reserved
 // Description : Basic implementation of an HTTP Server (WIP)
 //============================================================================
 
-#include "Server.hpp"
 #include "RequestHeader.hpp"
 #include "ResponseHeader.hpp"
-Server::Server(int *p) {
+#include "HttpServer.hpp"
+
+Server::Server(Controller const *c) {
+	controller = c;
 	sock_err = 0;
-	port = p;
+	port = new int(c->getPort());
 	recsize = sizeof(csin);
 }
 
@@ -73,21 +75,23 @@ void Server::manageConnexion() {
 
 		//cout << request << endl;
 		recv(client, requestBuffer, sizeof(requestBuffer), 0);
-		RequestHeader request(requestBuffer);
-		cout << "[" << inet_ntoa(csin.sin_addr) << "] " << request.getHead() << endl;
+		RequestHeader *request = new RequestHeader(requestBuffer);
+		cout << "[" << inet_ntoa(csin.sin_addr) << "] " << request->getHead() << endl;
 		//cout << request.getAgent() << endl;
 		//cout << request.getHost() << endl;
 
-		ResponseHeader response(request.getDestination(), request.getHost());
+		ResponseHeader *response = new ResponseHeader(this, request->getDestination(), request->getHost());
+		delete request;
 
-		sock_err = send(client, response.getResponse(), response.getSize(), 0);
+		//sock_err = this->sendBufferData(response->getResponse(), response->getSize());
+		delete response;
 
 		//cout << "CRASH AVANT ICI SVP";
 		if (sock_err == SOCKET_ERROR)
 			cout << "Transmition error" << endl;
 
 		//Actually no support of keep-alive ( 3x more request :/ )
-		shutdown(client, 2);
+		this->close();
 	}
 
 }
