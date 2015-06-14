@@ -16,7 +16,6 @@ Controller::Controller(int *p) {
 
 Controller::~Controller() {
 	delete server;
-	// TODO Auto-generated destructor stub
 }
 
 bool Controller::init()

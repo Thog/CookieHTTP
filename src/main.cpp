@@ -11,10 +11,7 @@ int main()
 {
     int port(80);
     Controller *c = new Controller(&port);
-    cout << c << endl;
     c->init();
-//    Server s(&port);
-//    s.init();
 	return 0;
 }
 

@@ -8,7 +8,6 @@
 
 #include "RequestHeader.hpp"
 #include "ResponseHeader.hpp"
-#include "HttpServer.hpp"
 
 Server::Server(Controller const *c) {
 	controller = c;
@@ -90,7 +89,7 @@ void Server::manageConnexion() {
 		if (sock_err == SOCKET_ERROR)
 			cout << "Transmition error" << endl;
 
-		//Actually no support of keep-alive ( 3x more request :/ )
+		//Actually no support keep-alive ( 3x more request :/ )
 		this->close();
 	}
 
